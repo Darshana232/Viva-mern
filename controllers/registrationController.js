@@ -1,4 +1,4 @@
-const registration = require(".../model/registration");
+const Registration = require("../model/registrationModel");
 
 const registerEvent = async (req, res) => {
     try{
@@ -9,7 +9,7 @@ const registerEvent = async (req, res) => {
                 message: "All fields are required!"
             });
         }
-        const alreadyRegistered = await registration.findOne({
+        const alreadyRegistered = await Registration.findOne({
             email: email.trim();
             eventName: eventname.trim();
             status: "registered"
@@ -19,7 +19,7 @@ const registerEvent = async (req, res) => {
             return res.status(409).json({message: "Student already registered for this event!"});
         }
 
-        const newRegistration = new registration({
+        const newRegistration = new Registration({
             studentName: studentname.trim(),
             email: email.trim(),
             eventName: eventname.trim(),
@@ -38,7 +38,7 @@ const registerEvent = async (req, res) => {
     }
 };
 
-const getRegistration = async (req, res) => {
+const getRegistrations = async (req, res) => {
     try{
         const{eventName, status} = req.query;
 
@@ -55,7 +55,7 @@ const getRegistration = async (req, res) => {
             filter.status = status;
         }
 
-        const registrations = await registration.find(filter);
+        const registrations = await Registration.find(filter);
         return res.status(200).json(registrations);
     }
     catch(err){
@@ -64,25 +64,25 @@ const getRegistration = async (req, res) => {
     }
 };
 
-const cancelRegistrations = async (req, res) => {
+const cancelRegistration = async (req, res) => {
     try{
         const {id} = req.params;
         if(!require("mongoose").isValidObjectId(id)){
             return res.status(400).json({message: "Invalid Id"});
         }
-        const Registration = await registration.findById(id);
-        if(!Registration){
+        const registration = await Registration.findById(id);
+        if(!registration){
             return res.status(404).json({message: "Not found"});
         }
-        if(Registration.status === "cancelled"){
+        if(registration.status === "cancelled"){
             return res.status(400).json({message: "Already cancelled"});
         }
-        Registration.status = "cancelled";
-        await Registration.save();
+        registration.status = "cancelled";
+        await registration.save();
 
         return res.status(200).json({
             message: "registratin cancelled",
-            Registration
+            Registration: registration
         });
 
     }
@@ -95,5 +95,5 @@ const cancelRegistrations = async (req, res) => {
 module.exports = {
     registerEvent,
     getRegistrations,
-    cancelRegistrations
+    cancelRegistration
 };
